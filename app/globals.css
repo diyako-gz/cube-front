@@ -1,0 +1,569 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "iranyekan";
+  src: url("/fonts/iranyekanwebregular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "iranyekan";
+  src: url("/fonts/iranyekanwebmedium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "iranyekan";
+  src: url("/fonts/iranyekanwebbold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "iranyekan";
+  src: url("/fonts/iranyekanwebblack.woff") format("woff");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============ themes: light is the base, .dark overrides ============ */
+:root {
+  color-scheme: light;
+  --bg: 242 245 252;
+  --panel: 255 255 255;
+  --fg: 16 24 52;
+  --muted: 92 104 140;
+  --line: 40 60 130;
+  --line-a: 0.13;
+  --neon: 0 133 172;
+  --violet: 109 68 232;
+  --pink: 218 36 140;
+  --lime: 14 148 98;
+  --rose: 218 40 72;
+  --amber: 176 118 0;
+  --on-accent: 255 255 255;
+  --shadow: 40 50 120;
+  --hmid: 88 78 200;
+  --glow-a: 0;
+  --glass-a: rgb(255 255 255 / 0.8);
+  --glass-b: rgb(255 255 255 / 0.5);
+  --card-shadow: 0 12px 40px -22px rgb(40 50 120 / 0.28);
+  --blob-1: 0.17;
+  --blob-2: 0.2;
+  --blob-3: 0.1;
+  --grid-a: 0.06;
+}
+.dark {
+  color-scheme: dark;
+  --bg: 6 9 20;
+  --panel: 13 18 36;
+  --fg: 233 238 255;
+  --muted: 142 154 192;
+  --line: 160 180 255;
+  --line-a: 0.13;
+  --neon: 39 232 255;
+  --violet: 155 107 255;
+  --pink: 255 60 172;
+  --lime: 92 242 168;
+  --rose: 255 92 122;
+  --amber: 255 200 87;
+  --on-accent: 6 9 20;
+  --shadow: 0 0 0;
+  --hmid: 169 188 255;
+  --glow-a: 0.5;
+  --glass-a: rgb(255 255 255 / 0.07);
+  --glass-b: rgb(255 255 255 / 0.02);
+  --card-shadow: none;
+  --blob-1: 0.2;
+  --blob-2: 0.26;
+  --blob-3: 0.1;
+  --grid-a: 0.035;
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-fg;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--neon));
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: rgb(var(--neon) / 0.3);
+  }
+  select option {
+    background: rgb(var(--panel));
+    color: rgb(var(--fg));
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--fg) / 0.2);
+    border-radius: 8px;
+  }
+}
+
+@layer components {
+  .glass {
+    background: linear-gradient(135deg, var(--glass-a), var(--glass-b));
+    border: 1px solid rgb(var(--line) / var(--line-a));
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 18px;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  .btn-primary {
+    @apply btn text-onaccent;
+    background-image: linear-gradient(
+      135deg,
+      rgb(var(--neon)),
+      rgb(var(--violet))
+    );
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+      0 0 24px rgb(var(--neon) / 0.5),
+      0 0 48px rgb(var(--violet) / 0.25);
+  }
+  .btn-neon {
+    @apply btn text-white;
+    background-image: linear-gradient(
+      135deg,
+      rgb(var(--pink)),
+      rgb(var(--violet))
+    );
+  }
+  .btn-neon:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 0 24px rgb(var(--pink) / 0.5);
+  }
+  .btn-ghost {
+    @apply btn border border-line bg-panel/60 text-fg;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    border-color: rgb(var(--neon) / 0.6);
+    box-shadow: 0 0 16px rgb(var(--neon) / 0.25);
+  }
+  .btn-danger {
+    @apply btn border border-rose/40 bg-transparent text-rose;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: rgb(var(--rose) / 0.15);
+    box-shadow: 0 0 18px rgb(var(--rose) / 0.35);
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-line bg-panel/70 px-3 py-2 text-sm text-fg transition-all duration-200 placeholder:text-muted/60;
+  }
+  .input:focus {
+    outline: none;
+    border-color: rgb(var(--neon));
+    box-shadow:
+      0 0 0 3px rgb(var(--neon) / 0.15),
+      0 0 18px rgb(var(--neon) / 0.2);
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium text-muted;
+  }
+
+  .h-page {
+    @apply text-3xl font-black tracking-tight;
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--fg)) 20%,
+      rgb(var(--hmid)) 60%,
+      rgb(var(--neon))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .h-sec {
+    @apply text-sm font-bold text-neon;
+    text-shadow: 0 0 14px rgb(var(--neon) / var(--glow-a));
+  }
+  .glow {
+    text-shadow: 0 0 18px rgb(var(--neon) / var(--glow-a));
+  }
+
+  .neon-border {
+    position: relative;
+    border-radius: 22px;
+  }
+  .neon-border::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      120deg,
+      rgb(var(--neon)),
+      rgb(var(--violet)),
+      rgb(var(--pink)),
+      rgb(var(--neon))
+    );
+    background-size: 300% 300%;
+    animation: flow 7s linear infinite;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+  .shimmer {
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--neon)),
+      rgb(var(--violet)),
+      rgb(var(--pink)),
+      rgb(var(--violet)),
+      rgb(var(--neon))
+    );
+    background-size: 200% 100%;
+    animation: flow 4s linear infinite;
+  }
+}
+
+/* ============ animated background ============ */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: rgb(var(--bg));
+}
+.aurora i {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  animation: drift 24s ease-in-out infinite alternate;
+}
+.aurora i:nth-child(1) {
+  width: 44vmax;
+  height: 44vmax;
+  background: rgb(var(--neon));
+  top: -14vmax;
+  left: -12vmax;
+  opacity: var(--blob-1);
+}
+.aurora i:nth-child(2) {
+  width: 40vmax;
+  height: 40vmax;
+  background: rgb(var(--violet));
+  bottom: -16vmax;
+  right: -10vmax;
+  opacity: var(--blob-2);
+  animation-delay: -8s;
+}
+.aurora i:nth-child(3) {
+  width: 26vmax;
+  height: 26vmax;
+  background: rgb(var(--pink));
+  top: 42%;
+  left: 40%;
+  opacity: var(--blob-3);
+  animation-delay: -14s;
+}
+.aurora::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(var(--fg) / var(--grid-a)) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--fg) / var(--grid-a)) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at center, #000 25%, transparent 75%);
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    #000 25%,
+    transparent 75%
+  );
+}
+
+/* ============ page entrance ============ */
+.page > * > * {
+  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.page > * > *:nth-child(2) {
+  animation-delay: 0.07s;
+}
+.page > * > *:nth-child(3) {
+  animation-delay: 0.14s;
+}
+.page > * > *:nth-child(4) {
+  animation-delay: 0.21s;
+}
+.page > * > *:nth-child(5) {
+  animation-delay: 0.28s;
+}
+.page > * > *:nth-child(n + 6) {
+  animation-delay: 0.35s;
+}
+.page ul > li {
+  animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.page ul > li:nth-child(1) {
+  animation-delay: 0.12s;
+}
+.page ul > li:nth-child(2) {
+  animation-delay: 0.17s;
+}
+.page ul > li:nth-child(3) {
+  animation-delay: 0.22s;
+}
+.page ul > li:nth-child(4) {
+  animation-delay: 0.27s;
+}
+.page ul > li:nth-child(5) {
+  animation-delay: 0.32s;
+}
+.page ul > li:nth-child(6) {
+  animation-delay: 0.37s;
+}
+.page ul > li:nth-child(n + 7) {
+  animation-delay: 0.42s;
+}
+
+/* ============ spotlight card ============ */
+.spot {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgb(var(--line) / var(--line-a));
+  background: linear-gradient(160deg, var(--glass-a), var(--glass-b));
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition:
+    transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.3s,
+    box-shadow 0.45s;
+}
+.spot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s;
+  background: radial-gradient(
+    380px circle at var(--mx, 50%) var(--my, 50%),
+    rgb(var(--neon) / 0.13),
+    transparent 45%
+  );
+}
+.spot:hover {
+  border-color: rgb(var(--neon) / 0.35);
+}
+.spot:hover::after {
+  opacity: 1;
+}
+.spot-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 22px 60px -22px rgb(var(--neon) / 0.45);
+}
+
+/* ============ timeline ============ */
+.timeline {
+  position: relative;
+}
+.timeline::before {
+  content: "";
+  position: absolute;
+  inset-block: 10px;
+  inset-inline-start: 7px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--neon)),
+    rgb(var(--line) / 0.08)
+  );
+}
+.timeline > li {
+  position: relative;
+  padding-inline-start: 34px;
+}
+.timeline > li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 2px;
+  top: 2rem;
+  width: 11px;
+  height: 11px;
+  border-radius: 9999px;
+  background: rgb(var(--bg));
+  border: 2px solid rgb(var(--neon));
+  box-shadow: 0 0 12px rgb(var(--neon) / 0.8);
+}
+
+/* ============ chart + bars ============ */
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 1.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s forwards;
+}
+.area-in {
+  animation: fade 1.4s ease-out 0.5s both;
+}
+.growx {
+  transform-origin: right;
+  animation: growx 1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* ============ theme switch: circular reveal ============ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition:
+    background-color 0.45s,
+    border-color 0.45s,
+    color 0.45s,
+    fill 0.45s,
+    stroke 0.45s !important;
+}
+
+@keyframes drift {
+  to {
+    transform: translate3d(7vmax, 5vmax, 0) scale(1.18);
+  }
+}
+@keyframes flow {
+  to {
+    background-position: 300% 0;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes growx {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============ print / save as PDF: always light, no app chrome ============ */
+@media print {
+  html.dark {
+    --bg: 255 255 255;
+    --panel: 255 255 255;
+    --fg: 16 24 52;
+    --muted: 92 104 140;
+    --line: 40 60 130;
+    --neon: 0 133 172;
+    --violet: 109 68 232;
+    --pink: 218 36 140;
+    --lime: 14 148 98;
+    --rose: 218 40 72;
+    --amber: 176 118 0;
+    --hmid: 88 78 200;
+    --glass-a: rgb(255 255 255 / 1);
+    --glass-b: rgb(255 255 255 / 1);
+    --card-shadow: none;
+    --glow-a: 0;
+  }
+  .aurora,
+  .app-header,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  main.page {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  .page > * > *,
+  .page ul > li {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .spot,
+  .glass {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+  .draw,
+  .area-in,
+  .growx {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .h-page {
+    -webkit-text-fill-color: rgb(var(--fg));
+    color: rgb(var(--fg));
+    background: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .timeline > li { padding-inline-start: 24px; }
+  .timeline > li::before { inset-inline-start: 1px; top: 1.9rem; width: 10px; height: 10px; }
+  .timeline::before { inset-inline-start: 5px; }
+}
