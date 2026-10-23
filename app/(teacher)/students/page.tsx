@@ -76,7 +76,7 @@ export default function StudentsPage() {
       {empty && (
         <Spot className="px-6 py-16 text-center">
           <p className="text-lg font-bold">هنوز زبان‌آموزی ثبت نشده است</p>
-          <p className="mt-2 text-sm text-muted">با افزودن اولین زبان‌آموز، CUBEتان شروع می‌شود.</p>
+          <p className="mt-2 text-sm text-muted">با افزودن اولین زبان‌آموز، CUBE تان شروع می‌شود.</p>
           <button className="btn-primary mt-6" onClick={() => setAdding(true)}>زبان‌آموز جدید</button>
         </Spot>
       )}

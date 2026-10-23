@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useId, useState } from "react";
 
-
+/** Circular progress that fills itself on mount. value: 0–1 */
 export function Ring({
   value, size = 120, stroke = 10, children,
 }: { value: number; size?: number; stroke?: number; children?: React.ReactNode }) {

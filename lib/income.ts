@@ -3,7 +3,7 @@ import type { IncomeReport } from "./types";
 
 export interface DayPoint { key: string; label: string; day: number; total: number }
 
-
+/** Running total of income per day of a Jalali month. */
 export function cumulativeSeries(r: IncomeReport, days: { key: string; label: string }[], untilToday: boolean): DayPoint[] {
   const todayKey = tehranKey(Date.now());
   const byDay = new Map(r.daily.map((d) => [d.day, d.amount]));

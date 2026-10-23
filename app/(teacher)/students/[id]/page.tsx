@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, recordPayment } from "@/lib/api";
 import { dateFa, dateLongFa, n, toman } from "@/lib/format";
 import { Beads } from "@/components/Beads";
 import { CountUp } from "@/components/CountUp";
@@ -50,8 +50,7 @@ export default function StudentDetailPage() {
   const submitPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api(`/students/${id}/payments`, { method: "POST", body: { amount: Number(amount || s.price), note } });
-      setPaying(false); setNote(""); load();
+      if (await recordPayment(id, { amount: Number(amount || s.price), note })) { setPaying(false); setNote(""); load(); }
     } catch (e2) { alert(e2 instanceof Error ? e2.message : "خطا"); }
   };
 

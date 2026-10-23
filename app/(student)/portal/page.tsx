@@ -1,19 +1,24 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
+import { jalaliMonth } from "@/lib/jalali";
 import { dateFa, dateLongFa, dateTimeFa, n, timeFa, toman } from "@/lib/format";
 import { Beads } from "@/components/Beads";
+import { MonthCalendar } from "@/components/MonthCalendar";
+import { ProgressPanel } from "@/components/ProgressPanel";
 import { CountUp } from "@/components/CountUp";
+import { FeedbackCards } from "@/components/FeedbackCards";
 import { Modal } from "@/components/Modal";
 import { Ring } from "@/components/Ring";
 import { Spot } from "@/components/Spot";
 import { StatusBadge } from "@/components/StatusBadge";
-import type { Portal, Session, SessionRequest } from "@/lib/types";
+import type { Portal, PortalOverview, Session, SessionRequest } from "@/lib/types";
 
 const REQ_LABEL = { pending: "در انتظار پاسخ", approved: "تأیید شد", rejected: "رد شد" } as const;
 const REQ_TONE = { pending: "text-amber", approved: "text-lime", rejected: "text-rose" } as const;
-const NOTICE_HOURS = 12;
+const NOTICE_HOURS = 12; // keep in sync with CANCEL_NOTICE_HOURS on the server
 
 function RequestModal({
   session, type, onClose, onDone,
@@ -63,8 +68,64 @@ export default function PortalPage() {
   const [err, setErr] = useState("");
   const [req, setReq] = useState<{ session: Session; type: "cancel" | "reschedule" } | null>(null);
 
+  const router = useRouter();
+  const [payBusy, setPayBusy] = useState(false);
+  const [banner, setBanner] = useState<{ ok: boolean; text: string } | null>(null);
+  const [ov, setOv] = useState<PortalOverview | null>(null);
+  const [back, setBack] = useState(0); // 0 = this month, > 0 past, < 0 future
+  const month = useMemo(() => jalaliMonth(back), [back]);
+  // the bank sends the student back here with ?pay=success|failed|canceled
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const r = q.get("pay");
+    if (!r) return;
+    const ref = q.get("ref");
+    setBanner(
+      r === "success" ? { ok: true, text: `پرداخت با موفقیت انجام شد${ref ? ` (کد پیگیری ${ref})` : ""}. ممنون!` }
+      : r === "canceled" ? { ok: false, text: "پرداخت لغو شد." }
+      : { ok: false, text: "پرداخت انجام نشد یا تأیید نشد. اگر مبلغ از حسابتان کسر شده، با معلم تماس بگیرید." },
+    );
+    window.history.replaceState(null, "", "/portal");
+  }, []);
+
+  const payCard = async () => {
+    setPayBusy(true);
+    try {
+      const r = await api<{ id: string }>("/portal/transfers", { method: "POST" });
+      router.push(`/pay/${r.id}`);
+    } catch (e) {
+      setBanner({ ok: false, text: e instanceof Error ? e.message : "خطا" });
+      setPayBusy(false);
+    }
+  };
+
+  const payOnline = async () => {
+    setPayBusy(true);
+    try {
+      const r = await api<{ url: string }>("/portal/pay", { method: "POST" });
+      window.location.href = r.url;
+    } catch (e) {
+      setBanner({ ok: false, text: e instanceof Error ? e.message : "خطا" });
+      setPayBusy(false);
+    }
+  };
+
+  const loadOv = useCallback(() => {
+    api<PortalOverview>(`/portal/overview?from=${encodeURIComponent(month.from.toISOString())}&to=${encodeURIComponent(month.to.toISOString())}`)
+      .then(setOv).catch(() => {});
+  }, [month]);
+  useEffect(loadOv, [loadOv]);
+
   const load = useCallback(() => { api<Portal>("/portal").then(setP).catch((e: Error) => setErr(e.message)); }, []);
   useEffect(load, [load]);
+
+  // the teacher marks sessions from another device: refresh when the student comes back to this tab
+  useEffect(() => {
+    const h = () => { if (document.visibilityState === "visible") { load(); loadOv(); } };
+    document.addEventListener("visibilitychange", h);
+    window.addEventListener("focus", h);
+    return () => { document.removeEventListener("visibilitychange", h); window.removeEventListener("focus", h); };
+  }, [load, loadOv]);
 
   if (err) return <p className="text-rose">{err}</p>;
   if (!p) return <p className="text-muted">در حال بارگذاری…</p>;
@@ -91,6 +152,20 @@ export default function PortalPage() {
         <h1 className="h-page mt-2 text-4xl sm:text-5xl">{s.name}</h1>
         {s.language && <p className="mt-2 text-fg/70">{s.language}</p>}
       </header>
+
+      {p.transfers.length > 0 && (
+        <p role="status" className="rounded-2xl border border-neon/30 bg-neon/10 px-5 py-4 text-sm leading-7">
+          پرداخت کارت‌به‌کارت شما در انتظار تأیید معلم است. بعد از تأیید، اعلان می‌گیرید.
+        </p>
+      )}
+
+      {banner && (
+        <p role="status" className={`rounded-2xl border px-5 py-4 text-sm leading-7 ${banner.ok ? "border-lime/30 bg-lime/10 text-lime" : "border-rose/30 bg-rose/10 text-rose"}`}>
+          {banner.text}
+        </p>
+      )}
+
+      <FeedbackCards sessions={p.feedbackPending} onDone={load} />
 
       <section className="grid gap-6 md:grid-cols-2">
         <Spot className="flex flex-col items-center p-8 text-center">
@@ -121,7 +196,29 @@ export default function PortalPage() {
             <div><dt className="label">سررسید</dt><dd className="font-medium">{dateFa(s.nextDueAt)}</dd></div>
             <div><dt className="label">هر بسته</dt><dd className="font-medium">{toman(s.price)}</dd></div>
           </dl>
+          {!s.payable && s.payableFrom && (
+            <p className="mt-6 w-full rounded-xl border border-line bg-panel/50 px-4 py-3 text-sm leading-7 text-muted">
+              پرداخت شهریه‌ی دوره‌ی بعد از <b className="text-fg">{dateFa(s.payableFrom)}</b> فعال می‌شود. پرداخت زودهنگام ندارد.
+            </p>
+          )}
+          {s.payable && p.cardEnabled && s.price > 0 && (
+            <button onClick={payCard} disabled={payBusy} className="btn-primary mt-6 w-full py-3">
+              پرداخت کارت‌به‌کارت {toman(s.price)}
+            </button>
+          )}
+          {s.payable && p.paymentEnabled && s.price > 0 && (
+            <button onClick={payOnline} disabled={payBusy} className="btn-primary mt-6 w-full py-3">
+              {payBusy ? "در حال انتقال به درگاه…" : `پرداخت آنلاین ${toman(s.price)}`}
+            </button>
+          )}
         </Spot>
+      </section>
+
+      {ov && <ProgressPanel ov={ov} />}
+
+      <section>
+        <h2 className="h-sec mb-3">تقویم کلاس‌ها</h2>
+        <MonthCalendar month={month} sessions={ov?.calendar ?? []} onPrev={() => setBack(back + 1)} onNext={() => setBack(back - 1)} />
       </section>
 
       {withNotes.length > 0 && (

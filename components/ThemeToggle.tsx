@@ -6,6 +6,7 @@ const KEY = "daftar_theme";
 type VT = { ready: Promise<void> };
 type DocVT = { startViewTransition?: (cb: () => void) => VT };
 
+/** Sun/moon switch. The new theme spreads out from the button as a circle. */
 export function ThemeToggle({ className = "" }: { className?: string }) {
   const [dark, setDark] = useState(true);
   useEffect(() => { setDark(document.documentElement.classList.contains("dark")); }, []);

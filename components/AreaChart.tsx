@@ -12,7 +12,7 @@ function smooth(p: [number, number][]) {
   return d;
 }
 
-
+/** Smooth neon area chart. First value sits on the right (RTL). Draws itself on mount. */
 export function AreaChart({
   values, tip, interactive = true,
 }: { values: number[]; tip?: (i: number) => string; interactive?: boolean }) {

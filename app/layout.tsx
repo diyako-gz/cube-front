@@ -1,3 +1,4 @@
+
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { PwaRegister } from "@/components/PwaRegister";
@@ -6,8 +7,15 @@ export const metadata: Metadata = {
   title: "CUBE",
   description: "مدیریت زبان‌آموزان، جلسه‌ها، شهریه و درآمد برای معلم‌ها و مربی‌ها",
   applicationName: "CUBE",
-  appleWebApp: { capable: true, title: "CUBE", statusBarStyle: "black-translucent" },
-  icons: { icon: "/icons/cube-mark.svg", apple: "/icons/cube-mark.svg" },
+  appleWebApp: {
+    capable: true,
+    title: "CUBE",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: "/icons/cube-mark.svg",
+    apple: "/icons/cube-mark.svg",
+  },
 };
 
 export const viewport: Viewport = {

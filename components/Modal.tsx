@@ -2,7 +2,11 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-
+/**
+ * The dialog is rendered straight into <body> (a portal). Inside the page it was
+ * trapped in an animated parent: the fixed header and the bottom menu (z-40) were
+ * painted over it, hiding the top and the bottom of tall forms (like the notes form).
+ */
 export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -13,7 +17,7 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
     return () => window.removeEventListener("keydown", h);
   }, [onClose]);
 
-
+  // the page behind must not scroll while the dialog is open
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
