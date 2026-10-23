@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: "مدیریت زبان‌آموزان، جلسه‌ها، شهریه و درآمد برای معلم‌ها و مربی‌ها",
   applicationName: "CUBE",
   appleWebApp: { capable: true, title: "CUBE", statusBarStyle: "black-translucent" },
-  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
+  icons: { icon: "/icons/cube-mark.svg", apple: "/icons/cube-mark.svg" },
 };
 
 export const viewport: Viewport = {
