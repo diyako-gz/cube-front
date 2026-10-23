@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 
+// Every color is a CSS variable (see globals.css) so light and dark themes share one set of classes.
 const c = (v: string) => `rgb(var(--${v}) / <alpha-value>)`;
 
 const config: Config = {
@@ -14,7 +15,7 @@ const config: Config = {
         onaccent: c("on-accent"),
         line: "rgb(var(--line) / var(--line-a))",
       },
-      fontFamily: { sans: ['"MyFont"', "Tahoma", "sans-serif"] },
+      fontFamily: { sans: ['"Vazirmatn Variable"', "Tahoma", "sans-serif"] },
       keyframes: {
         rise: { from: { opacity: "0", transform: "translateY(16px)" }, to: { opacity: "1", transform: "none" } },
         pop: { from: { opacity: "0", transform: "scale(.3)" }, to: { opacity: "1", transform: "scale(1)" } },

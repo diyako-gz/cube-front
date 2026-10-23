@@ -1,15 +1,17 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { api } from "@/lib/api";
+import { api, recordPayment } from "@/lib/api";
 import { dateLongFa, n, timeFa, toman } from "@/lib/format";
 import { jalaliMonth } from "@/lib/jalali";
 import { cumulativeSeries } from "@/lib/income";
 import { useMe } from "@/components/Shell";
 import { AreaChart } from "@/components/AreaChart";
 import { Beads } from "@/components/Beads";
+import { FeedbackPanel } from "@/components/FeedbackPanel";
 import { CountUp } from "@/components/CountUp";
 import { RequestsPanel } from "@/components/RequestsPanel";
+import { TransfersPanel } from "@/components/TransfersPanel";
 import { Ring } from "@/components/Ring";
 import { SessionRow } from "@/components/SessionRow";
 import { Spot } from "@/components/Spot";
@@ -32,7 +34,7 @@ export default function DashboardPage() {
 
   const pay = async (s: Student) => {
     if (!confirm(`پرداخت ${toman(s.price)} از ${s.name} ثبت شود؟`)) return;
-    try { await api(`/students/${s.id}/payments`, { method: "POST", body: {} }); load(); }
+    try { if (await recordPayment(s.id, {})) load(); }
     catch (e) { alert(e instanceof Error ? e.message : "خطا"); }
   };
 
@@ -99,6 +101,7 @@ export default function DashboardPage() {
         </Spot>
       </section>
 
+      <TransfersPanel onChange={load} />
       <RequestsPanel onChange={load} />
 
       {d.pendingSessions.length > 0 && (
@@ -113,6 +116,8 @@ export default function DashboardPage() {
           </ul>
         </section>
       )}
+
+      <FeedbackPanel />
 
       <section className="grid gap-6 lg:grid-cols-2">
         <div>

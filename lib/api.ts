@@ -9,9 +9,11 @@ export const tokenStore = {
 
 export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  code?: string; // machine-readable reason from the server, e.g. "early"
+  constructor(message: string, status: number, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -32,10 +34,11 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
     tokenStore.clear();
     if (typeof window !== "undefined" && !location.pathname.startsWith("/login")) location.href = "/login";
   }
-  if (!res.ok) throw new ApiError(data?.error ?? "خطای ناشناخته", res.status);
+  if (!res.ok) throw new ApiError(data?.error ?? "خطای ناشناخته", res.status, data?.code);
   return data as T;
 }
 
+/** Downloads a file that needs the login token (a plain <a href> cannot send it). */
 export async function download(path: string, filename: string) {
   const token = tokenStore.get();
   const res = await fetch(API + path, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
@@ -48,4 +51,23 @@ export async function download(path: string, filename: string) {
   a.href = url; a.download = filename;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+/**
+ * Teacher records a payment by hand. The server refuses a payment that is too early
+ * (the period is not due yet); the teacher may still confirm it explicitly.
+ * Returns false if the teacher backed out.
+ */
+export async function recordPayment(studentId: string, body: { amount?: number; note?: string }): Promise<boolean> {
+  try {
+    await api(`/students/${studentId}/payments`, { method: "POST", body });
+    return true;
+  } catch (e) {
+    if (e instanceof ApiError && e.code === "early") {
+      if (!confirm(`${e.message}\nمطمئنید می‌خواهید پرداخت را زودتر از موعد ثبت کنید؟`)) return false;
+      await api(`/students/${studentId}/payments`, { method: "POST", body: { ...body, force: true } });
+      return true;
+    }
+    throw e;
+  }
 }

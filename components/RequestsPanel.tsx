@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { dateLongFa, dateTimeFa, timeFa } from "@/lib/format";
 import type { SessionRequest } from "@/lib/types";
 
+/** Pending cancel / reschedule requests from students. Renders nothing when there are none. */
 export function RequestsPanel({ onChange }: { onChange: () => void }) {
   const [list, setList] = useState<SessionRequest[]>([]);
   const [busy, setBusy] = useState("");

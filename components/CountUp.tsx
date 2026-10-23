@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
+/** Counts from 0 to `value` once, easing out. Respects reduced-motion. */
 export function CountUp({ value, format }: { value: number; format: (n: number) => string }) {
   const [v, setV] = useState(0);
   useEffect(() => {

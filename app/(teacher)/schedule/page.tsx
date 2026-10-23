@@ -10,7 +10,10 @@ import type { Session } from "@/lib/types";
 
 interface Option { id: string; name: string }
 
-const SPAN = 28;
+const SPAN = 28; // days shown in the strip
+
+// Persian week order (Saturday first). `d` is JS getDay(): Sun=0 … Sat=6.
+const faDigits = (s: string) => s.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 
 const WEEK = [
   { d: 6, l: "شنبه" }, { d: 0, l: "یکشنبه" }, { d: 1, l: "دوشنبه" }, { d: 2, l: "سه‌شنبه" },
@@ -19,14 +22,15 @@ const WEEK = [
 
 export default function SchedulePage() {
   const today = useMemo(() => dayStart(Date.now()), []);
-  const [offset, setOffset] = useState(0);
+  const [offset, setOffset] = useState(0); // shifts the strip by days
   const [sel, setSel] = useState(tehranKey(today));
   const [list, setList] = useState<Session[] | null>(null);
   const [students, setStudents] = useState<Option[]>([]);
   const [err, setErr] = useState("");
   const [adding, setAdding] = useState(false);
-  const [f, setF] = useState({ studentId: "", startsAt: "", durationMin: "60", weeks: "4" });
-  const [days2, setDays2] = useState<number[]>([]);
+  const [f, setF] = useState({ studentId: "", startDate: "", durationMin: "60", weeks: "4" });
+  const [days2, setDays2] = useState<number[]>([]); // chosen weekdays (getDay values)
+  const [times, setTimes] = useState<Record<number, string>>({}); // a separate time ("HH:MM") for every chosen weekday
   const [busy, setBusy] = useState(false);
   const selRef = useRef<HTMLButtonElement>(null);
 
@@ -55,44 +59,54 @@ export default function SchedulePage() {
   const shift = (delta: number) => {
     const next = offset + delta;
     setOffset(next);
-    setSel(tehranKey(today + (next - 3) * DAY_MS + 3 * DAY_MS));
+    setSel(tehranKey(today + (next - 3) * DAY_MS + 3 * DAY_MS)); // land on the "today" slot of the new window
   };
 
   const daySessions = byDay.get(sel) ?? [];
   const selMs = days.find((ms) => tehranKey(ms) === sel) ?? days[0];
 
   const openAdd = () => {
-    const startsAt = `${sel}T17:00`;
-    setF({ ...f, studentId: students[0]?.id ?? "", startsAt });
-    setDays2([new Date(startsAt).getDay()]);
+    const wd = new Date(`${sel}T12:00`).getDay();
+    setF({ ...f, studentId: students[0]?.id ?? "", startDate: sel });
+    setDays2([wd]); // the clicked day is pre-selected
+    setTimes({ [wd]: "17:00" });
     setAdding(true);
   };
 
+  // changing the start date moves the pre-selected weekday (and its time) with it
   const onStartChange = (v: string) => {
-    const oldD = f.startsAt ? new Date(f.startsAt).getDay() : null;
-    const newD = v ? new Date(v).getDay() : null;
-    setF({ ...f, startsAt: v });
+    const oldD = f.startDate ? new Date(`${f.startDate}T12:00`).getDay() : null;
+    const newD = v ? new Date(`${v}T12:00`).getDay() : null;
+    setF({ ...f, startDate: v });
     if (oldD !== null && newD !== null && oldD !== newD) {
       setDays2((prev) => Array.from(new Set([...prev.filter((x) => x !== oldD), newD])));
+      setTimes((t) => ({ ...t, [newD]: t[newD] ?? t[oldD] ?? "17:00" }));
     }
   };
 
-  const toggleDay = (d: number) =>
-    setDays2((prev) => (prev.includes(d) ? (prev.length > 1 ? prev.filter((x) => x !== d) : prev) : [...prev, d]));
+  const toggleDay = (d: number) => {
+    if (days2.includes(d)) {
+      if (days2.length > 1) setDays2(days2.filter((x) => x !== d)); // at least one day stays
+      return;
+    }
+    setDays2([...days2, d]);
+    setTimes((t) => ({ ...t, [d]: t[d] ?? t[days2[0]] ?? "17:00" })); // starts with the first day's time; change it freely
+  };
 
   const weeks = Math.max(1, Number(f.weeks) || 1);
   const total = days2.length * weeks;
-  const dayNames = WEEK.filter((w) => days2.includes(w.d)).map((w) => w.l).join("، ");
+  const dayNames = WEEK.filter((w) => days2.includes(w.d)).map((w) => `${w.l} ${faDigits(times[w.d] ?? "17:00")}`).join("، ");
 
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     try {
-      const start = new Date(f.startsAt);
+      // One request per chosen weekday, each with ITS OWN time; the API repeats it weekly for `weeks` weeks.
+      const startDow = new Date(`${f.startDate}T12:00`).getDay();
       await Promise.all(
         days2.map((d) => {
-          const first = new Date(start);
-          first.setDate(first.getDate() + ((d - start.getDay() + 7) % 7));
+          const first = new Date(`${f.startDate}T${times[d] || "17:00"}`);
+          first.setDate(first.getDate() + ((d - startDow + 7) % 7));
           return api("/sessions", {
             method: "POST",
             body: { studentId: f.studentId, startsAt: first.toISOString(), durationMin: Number(f.durationMin), count: weeks },
@@ -178,7 +192,7 @@ export default function SchedulePage() {
                 {students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
-            <div><label className="label">اولین جلسه (روز و ساعت)</label><input required type="datetime-local" className="input" value={f.startsAt} onChange={(e) => onStartChange(e.target.value)} /></div>
+            <div><label className="label">تاریخ اولین جلسه</label><input required type="date" className="input" value={f.startDate} onChange={(e) => onStartChange(e.target.value)} /></div>
             <div>
               <label className="label">روزهای برگزاری در هفته</label>
               <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-7">
@@ -195,6 +209,17 @@ export default function SchedulePage() {
                     </button>
                   );
                 })}
+              </div>
+            </div>
+            <div>
+              <label className="label">ساعت هر روز</label>
+              <div className="space-y-2">
+                {WEEK.filter((w) => days2.includes(w.d)).map((w) => (
+                  <div key={w.d} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-panel/50 px-3 py-2">
+                    <span className="text-sm font-medium">{w.l}</span>
+                    <input required type="time" className="input w-32" value={times[w.d] ?? "17:00"} onChange={(e) => setTimes({ ...times, [w.d]: e.target.value })} />
+                  </div>
+                ))}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

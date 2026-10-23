@@ -60,7 +60,7 @@ export default function ReceiptPage() {
             <span className="font-bold">مبلغ پرداخت‌شده</span>
             <span className="text-2xl font-black">{toman(p.amount)}</span>
           </div>
-          <p className="mt-6 text-center text-xs text-muted">این رسید به‌صورت خودکار از CUBE صادر شده است.</p>
+          <p className="mt-6 text-center text-xs text-muted">این رسید به‌صورت خودکار از cube صادر شده است.</p>
         </div>
       </article>
     </div>

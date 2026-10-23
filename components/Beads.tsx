@@ -1,5 +1,6 @@
 import { n } from "@/lib/format";
 
+/** One glowing bead per session: neon = held, hollow = still to come. */
 export function Beads({ total, left, size = "sm" }: { total: number; left: number; size?: "sm" | "lg" }) {
   if (total <= 0) return <span className="text-sm text-muted">—</span>;
   const MAX = 24;

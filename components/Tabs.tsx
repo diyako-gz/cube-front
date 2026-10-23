@@ -1,6 +1,6 @@
 "use client";
 
-
+/** Pill tabs with a glowing indicator that glides between options. */
 export function Tabs<T extends string>({
   items, value, onChange,
 }: { items: { id: T; label: string }[]; value: T; onChange: (v: T) => void }) {

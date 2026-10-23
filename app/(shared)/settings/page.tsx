@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
+import { useMe } from "@/components/Shell";
 import { Spot } from "@/components/Spot";
 import type { SettingsInfo } from "@/lib/types";
 
@@ -23,6 +24,10 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 }
 
 export default function SettingsPage() {
+  const me = useMe();
+  const [hrs, setHrs] = useState<{ start: number; end: number; days: number[] } | null>(null);
+  const [card, setCard] = useState("");
+  const [holder, setHolder] = useState("");
   const [info, setInfo] = useState<SettingsInfo | null>(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState("");
@@ -54,11 +59,26 @@ export default function SettingsPage() {
     finally { setBusy(""); }
   };
 
+  // ---- Working hours (teacher): used to suggest free times for makeup sessions ----
+  useEffect(() => { if (info?.hours && !hrs) setHrs(info.hours); }, [info, hrs]);
+  const saveHours = () => wrap("hours", async () => {
+    if (hrs) await api("/settings/hours", { method: "PUT", body: hrs });
+    await load();
+  });
 
+  // ---- Card for card-to-card payments (teacher) ----
+  const saveCard = (remove: boolean) => wrap("card", async () => {
+    if (remove && !confirm("دکمه‌ی پرداخت کارت‌به‌کارت برای زبان‌آموزانتان غیرفعال می‌شود. ادامه می‌دهید؟")) return;
+    await api("/payment/card", { method: "PUT", body: { cardNumber: remove ? "" : card, holder: remove ? "" : holder } });
+    setCard(""); setHolder("");
+    await load();
+  });
+
+  // ---- Telegram ----
   const connectTelegram = () => wrap("tg", async () => {
     const { url } = await api<{ url: string }>("/telegram/link", { method: "POST" });
     window.open(url, "_blank", "noopener");
-
+    // wait for the user to press Start in Telegram
     if (poll.current) clearInterval(poll.current);
     let n = 0;
     poll.current = setInterval(async () => {
@@ -77,7 +97,7 @@ export default function SettingsPage() {
   });
   const disconnectTelegram = () => wrap("tg", async () => { await api("/telegram/unlink", { method: "POST" }); await load(); });
 
-
+  // ---- Push ----
   const enablePush = () => wrap("push", async () => {
     const perm = await Notification.requestPermission();
     if (perm !== "granted") throw new Error("اجازه‌ی اعلان داده نشد. از تنظیمات مرورگر آن را فعال کنید.");
@@ -97,14 +117,14 @@ export default function SettingsPage() {
     setPushOn(false);
   });
 
-
+  // ---- Calendar ----
   const makeCalendar = (reset: boolean) => wrap("cal", async () => {
     if (reset && !confirm("لینک قبلی از کار می‌افتد و باید لینک جدید را دوباره به تقویم اضافه کنید. ادامه می‌دهید؟")) return;
     await api("/calendar/token", { method: "POST", body: { reset } });
     await load();
   });
   const copy = async (text: string) => {
-    try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { setErr("کپی نشد؛ مرورگر اجازه نداد."); }
+    try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* clipboard blocked */ }
   };
 
   if (!info) return <p className="text-muted">{err || "در حال بارگذاری…"}</p>;
@@ -116,6 +136,69 @@ export default function SettingsPage() {
         <p className="mt-2 text-sm text-muted">یادآوری‌ها را کجا می‌خواهید دریافت کنید؟</p>
       </header>
       {err && <p role="alert" className="rounded-lg border border-rose/30 bg-rose/10 px-3 py-2 text-sm text-rose">{err}</p>}
+
+      {me.role === "teacher" && hrs && (
+        <Section title="ساعت‌های کاری" hint="سایت فقط در این ساعت‌ها و روزها زمان خالی برای جلسه‌ی جبرانی پیشنهاد می‌دهد.">
+          <div className="grid grid-cols-2 gap-4 sm:max-w-sm">
+            {(["start", "end"] as const).map((k) => (
+              <div key={k}>
+                <label className="label" htmlFor={`h-${k}`}>{k === "start" ? "از ساعت" : "تا ساعت"}</label>
+                <select id={`h-${k}`} className="input" value={hrs[k]} onChange={(e) => setHrs({ ...hrs, [k]: Number(e.target.value) })}>
+                  {Array.from({ length: 49 }, (_, i) => i * 30).filter((m) => (k === "start" ? m < 1440 : m > 0)).map((m) => (
+                    <option key={m} value={m}>{`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)])}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 grid grid-cols-4 gap-1.5 sm:grid-cols-7">
+            {[[6, "شنبه"], [0, "یکشنبه"], [1, "دوشنبه"], [2, "سه‌شنبه"], [3, "چهارشنبه"], [4, "پنجشنبه"], [5, "جمعه"]].map(([d, l]) => {
+              const on = hrs.days.includes(d as number);
+              return (
+                <button
+                  key={d} type="button" aria-pressed={on}
+                  onClick={() => setHrs({ ...hrs, days: on ? hrs.days.filter((x) => x !== d) : [...hrs.days, d as number] })}
+                  className={`rounded-lg border px-1 py-2 text-xs transition-all duration-300 ${on ? "border-neon/60 bg-neon/10 font-bold text-neon" : "border-line bg-panel/50 text-fg/65 hover:border-neon/30"}`}
+                >
+                  {l}
+                </button>
+              );
+            })}
+          </div>
+          <button disabled={busy === "hours" || hrs.days.length === 0 || hrs.end - hrs.start < 30} onClick={saveHours} className="btn-primary btn-sm mt-4">ذخیره</button>
+        </Section>
+      )}
+
+      {me.role === "teacher" && info.card && (
+        <Section
+          title="کارت دریافت شهریه"
+          hint="وقتی زبان‌آموز «پرداخت کارت‌به‌کارت» را می‌زند، شماره این کارت و مبلغ را با یک تایمر می‌بیند. بعد از واریز، شما در برنامه‌ی بانک‌تان می‌بینید و با یک کلیک تأیید می‌کنید."
+        >
+          {info.card.configured && (
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <span className="flex items-center gap-2 text-lime">
+                <span className="h-2 w-2 rounded-full bg-lime" /> فعال، کارت <span dir="ltr">{info.card.masked}</span>
+                {info.card.holder && <span className="text-muted">({info.card.holder})</span>}
+              </span>
+              <button disabled={busy === "card"} onClick={() => saveCard(true)} className="btn-danger btn-sm">حذف</button>
+            </div>
+          )}
+          <form onSubmit={(e) => { e.preventDefault(); saveCard(false); }} className="space-y-3">
+            <div>
+              <label className="label" htmlFor="card">{info.card.configured ? "تغییر شماره کارت" : "شماره کارت (۱۶ رقم)"}</label>
+              <input id="card" required inputMode="numeric" dir="ltr" className="input tracking-widest" placeholder="6037 9912 3456 7890" value={card} onChange={(e) => setCard(e.target.value)} />
+            </div>
+            <div>
+              <label className="label" htmlFor="holder">نام صاحب کارت (اختیاری، برای اطمینان زبان‌آموز)</label>
+              <input id="holder" className="input" value={holder} onChange={(e) => setHolder(e.target.value)} />
+            </div>
+            <button disabled={busy === "card" || !card.trim()} className="btn-primary btn-sm">ذخیره</button>
+          </form>
+          <p className="mt-4 text-xs leading-6 text-muted">
+            فقط شماره کارت خودتان را وارد کنید (نه رمز یا CVV2). ارقام کارت هنگام ذخیره بررسی می‌شوند و اگر اشتباه باشند خطا می‌گیرید.
+          </p>
+        </Section>
+      )}
 
       <Section title="ربات تلگرام" hint="یادآوری جلسه‌ها، شهریه و پاسخ درخواست‌ها را در تلگرام دریافت کنید.">
         {!info.telegram.enabled ? (
@@ -176,7 +259,7 @@ export default function SettingsPage() {
         )}
       </Section>
 
-      <Section title="نصب به‌عنوان اپ" hint="CUBE را مثل یک برنامه روی صفحه‌ی اصلی داشته باشید.">
+      <Section title="نصب به‌عنوان اپ" hint="دفتر کلاس را مثل یک برنامه روی صفحه‌ی اصلی داشته باشید.">
         {install ? (
           <button onClick={() => install.prompt()} className="btn-primary">نصب برنامه</button>
         ) : (
