@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { api, tokenStore } from "@/lib/api";
 import { dateTimeFa, n } from "@/lib/format";
@@ -146,10 +147,8 @@ export function Shell({ role, children }: { role: Role | "any"; children: React.
 
         <div className="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3">
           <Link href={isTeacher ? "/dashboard" : "/portal"} className="group flex items-center gap-2.5 justify-self-start">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-neon to-violet shadow-[0_0_22px_rgb(var(--neon)/.55)] transition-transform duration-500 group-hover:rotate-12">
-              <span className="h-2.5 w-2.5 rounded-full bg-bg" />
-            </span>
-            <span className="hidden text-lg font-black tracking-tight sm:block">CUBE</span>
+            <Image src="/icons/cube-mark.svg" alt="CUBE" width={40} height={40} priority className="h-10 w-10 transition-transform duration-300 group-hover:scale-105" />
+            <span className="hidden text-lg font-semibold tracking-[0.24em] sm:block">CUBE</span>
           </Link>
 
           {isTeacher ? (
