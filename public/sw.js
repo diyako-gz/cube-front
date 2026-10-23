@@ -12,7 +12,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || "دفتر کلاس", {
       body: data.body || "",
-      icon: "/icons/icon-192.png",
+      icon: "/icons/cube-mark.svg",
       badge: "/icons/icon-192.png",
       dir: "rtl",
       lang: "fa",

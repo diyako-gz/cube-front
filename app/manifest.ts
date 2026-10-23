@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "cube",
-    short_name: "cube",
+    name: "CUBE",
+    short_name: "CUBE",
     description: "مدیریت زبان‌آموزان، جلسه‌ها، شهریه و درآمد",
     start_url: "/",
     scope: "/",

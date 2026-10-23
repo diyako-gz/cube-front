@@ -31,7 +31,7 @@ export default function ReceiptPage() {
         <div className="rounded-[22px] bg-panel p-8 sm:p-10">
           <div className="flex items-start justify-between gap-4 border-b border-line pb-6">
             <div>
-              <p className="text-xs text-muted">cube</p>
+              <p className="text-xs text-muted">CUBE</p>
               <h1 className="mt-1 text-2xl font-black">رسید پرداخت شهریه</h1>
             </div>
             <div className="text-end text-sm">

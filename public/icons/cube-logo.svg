@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <linearGradient id="line" x1="320" y1="300" x2="710" y2="730" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.52" stop-color="#CFCFCF"/>
+      <stop offset="1" stop-color="#FFFFFF"/>
+    </linearGradient>
+    <linearGradient id="face" x1="350" y1="340" x2="680" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity=".065"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity=".012"/>
+    </linearGradient>
+    <filter id="softGlow" x="250" y="240" width="530" height="600" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="#050505"/>
+  <g stroke="url(#line)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)">
+    <path d="M512 265 L690 365 Q704 373 690 382 L526 477 Q512 485 498 477 L334 382 Q320 374 334 365 L498 270 Q505 266 512 265Z" fill="url(#face)"/>
+    <path d="M334 382 L498 477 Q512 485 512 501 L512 705 Q512 722 497 713 L345 625 Q332 618 332 602 L332 397 Q332 386 334 382Z" fill="url(#face)"/>
+    <path d="M690 382 L526 477 Q512 485 512 501 L512 705 Q512 722 527 713 L679 625 Q692 618 692 602 L692 397 Q692 386 690 382Z" fill="url(#face)"/>
+    <path d="M430 350 L512 310 L594 350 L512 393 Z"/>
+    <path d="M454 363 L454 388 Q512 421 570 388 L570 363"/>
+    <path d="M594 350 L594 388"/>
+    <circle cx="594" cy="393" r="4" fill="#F5F5F5" stroke="none"/>
+    <path d="M384 477 Q384 467 394 473 L457 510 Q465 515 465 526 L465 584 Q465 594 456 589 L393 552 Q384 547 384 537 Z"/>
+    <path d="M400 470 L400 484 M447 497 L447 511"/>
+    <path d="M394 495 L455 530" opacity=".9"/>
+    <path d="M403 513 L411 518 M428 527 L436 532 M403 535 L411 540 M428 549 L436 554" stroke-width="5"/>
+    <path d="M565 523 L635 483 Q645 477 645 488 L645 556 Q645 565 636 570 L566 610 Q556 616 556 605 L556 538 Q556 529 565 523Z"/>
+    <path d="M558 548 L642 500" stroke-width="7"/>
+    <circle cx="625" cy="574" r="24" fill="#080808"/>
+    <path d="M631 562 Q625 555 618 561 Q612 567 622 571 Q634 575 628 584 Q622 591 614 584 M623 556 L623 590" stroke-width="2.6"/>
+  </g>
+  <text x="512" y="830" fill="#F2F2F2" font-family="Helvetica Neue, Arial, sans-serif" font-size="76" font-weight="300" letter-spacing="24" text-anchor="middle">CUBE</text>
+</svg>
