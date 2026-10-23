@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { api, tokenStore } from "@/lib/api";
 import { Beads } from "@/components/Beads";
 import { Spot } from "@/components/Spot";
@@ -179,11 +180,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-[100dvh] flex-col">
       <header className="flex items-center justify-between px-5 pt-5 sm:px-8">
-        <div className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-neon to-violet shadow-[0_0_22px_rgb(var(--neon)/.55)]">
-            <span className="h-2.5 w-2.5 rounded-full bg-bg" />
-          </span>
-          <span className="text-lg font-black tracking-tight">دفتر کلاس</span>
+        <div className="flex items-center gap-3">
+          <Image src="/icons/cube-mark.svg" alt="CUBE" width={44} height={44} priority className="h-11 w-11" />
+          <span className="text-lg font-semibold tracking-[0.24em]">CUBE</span>
         </div>
         <ThemeToggle />
       </header>
