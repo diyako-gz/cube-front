@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
 } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -69,6 +70,52 @@ function Bell() {
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const bellRef = useRef<HTMLDivElement>(null);
+  const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    if (!open) return;
+
+    const updatePosition = () => {
+      if (!bellRef.current) return;
+
+      const rect = bellRef.current.getBoundingClientRect();
+      const isMobile = window.innerWidth < 640;
+
+      if (isMobile) {
+        setPanelStyle({
+          position: "fixed",
+          top: "5rem",
+          right: "0.75rem",
+        });
+        return;
+      }
+
+      const panelWidth = Math.min(320, window.innerWidth - 24);
+
+      setPanelStyle({
+        position: "fixed",
+        top: `${rect.bottom + 10}px`,
+        left: `${Math.max(
+          12,
+          Math.min(
+            rect.right - panelWidth + 20,
+            window.innerWidth - panelWidth - 12,
+          ),
+        )}px`,
+      });
+    };
+
+    updatePosition();
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open]);
 
   const load = useCallback(() => {
     api<{ items: AppNotification[]; unread: number }>("/notifications")
@@ -111,7 +158,7 @@ function Bell() {
 
   return (
     <>
-      <div className="shrink-0">
+      <div ref={bellRef} className="shrink-0">
         <button
           type="button"
           onClick={toggle}
@@ -151,13 +198,13 @@ function Bell() {
               role="dialog"
               aria-label="اعلان‌ها"
               className="
-                fixed right-3 top-20 z-[9999]
-                flex max-h-[calc(100dvh-6rem)] w-80
-                max-w-[calc(100vw-1.5rem)] flex-col
-                overflow-hidden rounded-2xl border border-line
-                bg-panel shadow-2xl
-                sm:right-6
-              "
+  z-[9999]
+  flex max-h-[calc(100dvh-6rem)] w-80
+  max-w-[calc(100vw-1.5rem)] flex-col
+  overflow-hidden rounded-2xl border border-line
+  bg-panel shadow-2xl
+"
+              style={panelStyle}
             >
               <div className="flex shrink-0 items-center justify-between border-b border-line bg-panel px-4 py-3">
                 <span className="text-sm font-bold">اعلان‌ها</span>
