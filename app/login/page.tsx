@@ -279,7 +279,7 @@ export default function LoginPage() {
   }[mode];
 
   return (
-    <div className="flex min-h-[100dvh] flex-col">
+    <div className="flex min-h-[100dvh] flex-col cube-pattern">
       <header className="flex items-center justify-between px-5 pt-5 sm:px-8">
         <div className="flex items-center gap-2.5">
           <img
@@ -448,14 +448,16 @@ export default function LoginPage() {
 
                 {mode === "login" && (
                   <div className="space-y-2 text-center text-xs leading-6 text-muted">
-                    {cfg.passwordReset && (
-                      <button
-                        type="button"
-                        onClick={() => go("forgot")}
-                        className="text-neon hover:underline"
-                      >
-                        رمز عبور را فراموش کرده‌اید؟
-                      </button>
+                    {mode === "login" && (
+                      <div className="space-y-2 text-center text-xs leading-6 text-muted">
+                        <button
+                          type="button"
+                          onClick={() => go("forgot")}
+                          className="text-neon transition-colors hover:underline"
+                        >
+                          رمز عبور را فراموش کرده‌اید؟
+                        </button>
+                      </div>
                     )}
                     <p>
                       زبان‌آموزان با نام کاربری و رمزی که معلم برایشان ساخته

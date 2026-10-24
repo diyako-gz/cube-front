@@ -47,7 +47,7 @@ export interface Transfer {
   id: string; studentId: string; studentName: string; amount: number; card: string; holder: string;
   status: "open" | "submitted" | "approving" | "approved" | "rejected" | "expired";
   expiresAt: string; createdAt: string; submittedAt: string | null; payerLast4: string; trackingNo: string;
-  teacherNote: string; resolvedAt: string | null;
+  teacherNote: string; resolvedAt: string | null; hasReceipt: boolean;
 }
 export interface AuthConfig { registration: "open" | "invite" | "closed"; passwordReset: boolean }
 export interface Payment { id: string; studentId: string; studentName: string; amount: number; paidAt: string; note: string }

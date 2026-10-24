@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { ReceiptImage } from "@/components/ReceiptImage";
 import { dateTimeFa, toman } from "@/lib/format";
 import type { Transfer } from "@/lib/types";
 
@@ -36,13 +37,16 @@ export function TransfersPanel({ onChange }: { onChange: () => void }) {
         {list.map((t) => (
           <li key={t.id} className="rounded-2xl border border-line bg-panel/60 p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="min-w-0 text-sm leading-7">
-                <p className="font-bold">{t.studentName} <span className="font-black text-lime">{toman(t.amount)}</span></p>
-                <p className="text-muted">
-                  ۴ رقم آخر کارت پرداخت‌کننده: <span dir="ltr" className="font-bold text-fg">{t.payerLast4}</span>
-                  {t.trackingNo && <> · شماره پیگیری: <span dir="ltr" className="font-bold text-fg">{t.trackingNo}</span></>}
-                </p>
-                {t.submittedAt && <p className="text-xs text-muted">{dateTimeFa(t.submittedAt)}</p>}
+              <div className="flex min-w-0 flex-1 gap-3">
+                {t.hasReceipt && <ReceiptImage transferId={t.id} className="h-16 w-16 shrink-0" />}
+                <div className="min-w-0 text-sm leading-7">
+                  <p className="font-bold">{t.studentName} <span className="font-black text-lime">{toman(t.amount)}</span></p>
+                  <p className="text-muted">
+                    ۴ رقم آخر کارت پرداخت‌کننده: <span dir="ltr" className="font-bold text-fg">{t.payerLast4}</span>
+                    {t.trackingNo && <> · شماره پیگیری: <span dir="ltr" className="font-bold text-fg">{t.trackingNo}</span></>}
+                  </p>
+                  {t.submittedAt && <p className="text-xs text-muted">{dateTimeFa(t.submittedAt)}</p>}
+                </div>
               </div>
               <div className="flex gap-2">
                 <button disabled={busy === t.id} onClick={() => act(t, "approve")} className="btn-primary btn-sm">تأیید دریافت</button>

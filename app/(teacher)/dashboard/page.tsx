@@ -50,7 +50,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <section className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <Spot className="flex flex-col justify-between p-8 sm:p-10">
+        <Spot className="dashboard-hero flex flex-col justify-between p-8 sm:p-10">
           <div>
             <p className="text-sm text-muted">{todayLabel}</p>
             <h1 className="h-page mt-3 text-4xl leading-tight sm:text-5xl">{me.name}، سلام</h1>
@@ -65,7 +65,7 @@ export default function DashboardPage() {
           </div>
         </Spot>
 
-        <Spot className="p-6">
+        <Spot className="dashboard-income p-6">
           <p className="text-sm text-muted">درآمد {month.label}</p>
           <p className="glow mt-2 text-3xl font-black">
             {inc ? <CountUp value={inc.total} format={toman} /> : "…"}
@@ -77,11 +77,11 @@ export default function DashboardPage() {
       </section>
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Spot className="spot-lift p-5">
+        <Spot className="metric-card metric-students spot-lift p-5">
           <p className="glow text-4xl font-black"><CountUp value={d.students} format={n} /></p>
           <p className="mt-1 text-sm text-muted">زبان‌آموز</p>
         </Spot>
-        <Spot className="spot-lift flex items-center gap-4 p-5">
+        <Spot className="metric-card metric-paid spot-lift flex items-center gap-4 p-5">
           <Ring value={paidPct} size={68} stroke={7}>
             <span className="text-sm font-black">{n(Math.round(paidPct * 100))}٪</span>
           </Ring>
@@ -90,12 +90,12 @@ export default function DashboardPage() {
             <p className="mt-1 text-xs text-muted">{n(d.paid)} از {n(d.students)}</p>
           </div>
         </Spot>
-        <Spot className="spot-lift p-5">
+        <Spot className="metric-card metric-unpaid spot-lift p-5">
           <p className="text-4xl font-black text-rose"><CountUp value={d.unpaid} format={n} /></p>
           <p className="mt-1 text-sm text-muted">منتظر پرداخت</p>
           {d.outstanding > 0 && <p className="mt-1 text-xs text-fg/60">{toman(d.outstanding)}</p>}
         </Spot>
-        <Spot className="spot-lift p-5">
+        <Spot className="metric-card metric-sessions spot-lift p-5">
           <p className="text-4xl font-black text-amber"><CountUp value={d.lowSessions} format={n} /></p>
           <p className="mt-1 text-sm text-muted">بسته‌ی رو به اتمام</p>
         </Spot>

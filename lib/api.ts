@@ -71,3 +71,20 @@ export async function recordPayment(studentId: string, body: { amount?: number; 
     throw e;
   }
 }
+
+/** POST a multipart/form-data body (e.g. a file) with the login token attached. */
+export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
+  const token = tokenStore.get();
+  let res: Response;
+  try {
+    res = await fetch(API + path, { method: "POST", headers: token ? { Authorization: `Bearer ${token}` } : {}, body: form });
+  } catch {
+    throw new ApiError("ارتباط با سرور برقرار نشد", 0);
+  }
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new ApiError(data?.error ?? "خطای ناشناخته", res.status, data?.code);
+  return data as T;
+}
+
+/** URL of an uploaded transfer receipt image (needs the Authorization header, so <img src> alone will not load it — see ReceiptImage). */
+export const receiptURL = (transferId: string) => `${API}/transfers/${transferId}/receipt`;

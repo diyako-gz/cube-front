@@ -12,6 +12,7 @@ import { api, tokenStore } from "@/lib/api";
 import { dateTimeFa, n } from "@/lib/format";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import type { AppNotification, Me, Role } from "@/lib/types";
+import { createPortal } from "react-dom";
 
 const MeCtx = createContext<Me | null>(null);
 export const useMe = () => {
@@ -67,31 +68,41 @@ function Bell() {
   const [items, setItems] = useState<AppNotification[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const load = useCallback(() => {
     api<{ items: AppNotification[]; unread: number }>("/notifications")
       .then((r) => {
-        setItems(r.items);
-        setUnread(r.unread);
+        setItems(r.items ?? []);
+        setUnread(r.unread ?? 0);
       })
       .catch(() => {});
   }, []);
+
   useEffect(() => {
+    setMounted(true);
     load();
-    const t = setInterval(load, 60_000);
-    return () => clearInterval(t);
+
+    const timer = setInterval(load, 60_000);
+    return () => clearInterval(timer);
   }, [load]);
 
   useEffect(() => {
     if (!open) return;
-    const h = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
   const toggle = () => {
-    setOpen((o) => !o);
-    if (!open && unread > 0) {
+    const next = !open;
+    setOpen(next);
+
+    if (next && unread > 0) {
       api("/notifications/read", { method: "POST" })
         .then(() => setUnread(0))
         .catch(() => {});
@@ -100,23 +111,19 @@ function Bell() {
 
   return (
     <>
-      {/* transparent layer: a tap outside closes the panel */}
-      {open && (
-        <div
-          className="fixed inset-0 z-10"
-          onClick={() => setOpen(false)}
-          aria-hidden
-        />
-      )}
-      <div className="relative z-20">
+      <div className="shrink-0">
         <button
+          type="button"
           onClick={toggle}
-          className="btn-ghost btn-sm"
+          className="btn-ghost btn-sm whitespace-nowrap"
           aria-label="اعلان‌ها"
           aria-expanded={open}
+          aria-haspopup="dialog"
         >
           <BellIcon />
+
           <span className="hidden sm:inline">اعلان‌ها</span>
+
           {unread > 0 && (
             <span
               className="animate-pulseGlow rounded-full bg-pink px-1.5 text-[11px] leading-5 text-white"
@@ -126,43 +133,83 @@ function Bell() {
             </span>
           )}
         </button>
-        {open && (
-          // phone: a panel pinned under the header with 12px side margins (never off-screen);
-          // sm and up: a dropdown anchored to the bell
-          <div className="glass animate-pop fixed inset-x-3 top-[4.5rem] max-h-[70vh] origin-top overflow-y-auto bg-panel/95 sm:absolute sm:inset-x-auto sm:end-0 sm:top-full sm:mt-2 sm:max-h-96 sm:w-80">
-            <div className="flex items-center justify-between border-b border-line px-4 py-3">
-              <span className="text-sm font-bold">اعلان‌ها</span>
-              <button
-                onClick={() => setOpen(false)}
-                className="text-xl leading-none text-muted hover:text-neon sm:hidden"
-                aria-label="بستن"
-              >
-                ×
-              </button>
-            </div>
-            {items.length === 0 ? (
-              <p className="p-4 text-sm leading-7 text-muted">
-                هنوز اعلانی نیست. یادآوری جلسه‌ها و شهریه اینجا نمایش داده
-                می‌شود.
-              </p>
-            ) : (
-              <ul className="divide-y divide-line">
-                {items.map((it) => (
-                  <li key={it.id} className="p-4">
-                    <p className="text-sm font-medium text-neon">{it.title}</p>
-                    <p className="mt-0.5 text-sm leading-7 text-fg/80">
-                      {it.body}
-                    </p>
-                    <p className="mt-1 text-xs text-muted">
-                      {dateTimeFa(it.createdAt)}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
       </div>
+
+      {mounted &&
+        open &&
+        createPortal(
+          <>
+            <button
+              type="button"
+              className="fixed inset-0 z-[9998] cursor-default"
+              onClick={() => setOpen(false)}
+              aria-label="بستن اعلان‌ها"
+              tabIndex={-1}
+            />
+
+            <section
+              role="dialog"
+              aria-label="اعلان‌ها"
+              className="
+                fixed right-3 top-20 z-[9999]
+                flex max-h-[calc(100dvh-6rem)] w-80
+                max-w-[calc(100vw-1.5rem)] flex-col
+                overflow-hidden rounded-2xl border border-line
+                bg-panel shadow-2xl
+                sm:right-6
+              "
+            >
+              <div className="flex shrink-0 items-center justify-between border-b border-line bg-panel px-4 py-3">
+                <span className="text-sm font-bold">اعلان‌ها</span>
+
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="text-xl leading-none text-muted hover:text-neon"
+                  aria-label="بستن"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                {items.length === 0 ? (
+                  <p className="p-4 text-sm leading-7 text-muted">
+                    هنوز اعلانی نیست. یادآوری جلسه‌ها و شهریه اینجا نمایش داده
+                    می‌شود.
+                  </p>
+                ) : (
+                  <ul className="divide-y divide-line">
+                    {items.map((it) => (
+                      <li key={it.id} className="p-4">
+                        <p className="text-sm font-medium text-neon">
+                          {it.title}
+                        </p>
+
+                        <p className="mt-1 text-sm leading-7 text-fg/80">
+                          {it.body}
+                        </p>
+
+                        <p className="mt-2 text-xs text-muted">
+                          {dateTimeFa(it.createdAt)}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {items.length > 0 && (
+                <div className="shrink-0 border-t border-line px-4 py-2">
+                  <p className="text-center text-xs text-muted">
+                    {n(items.length)} اعلان
+                  </p>
+                </div>
+              )}
+            </section>
+          </>,
+          document.body,
+        )}
     </>
   );
 }
@@ -226,7 +273,7 @@ export function Shell({
           className="absolute inset-x-0 bottom-0 -z-10 h-px bg-gradient-to-l from-transparent via-neon/60 to-transparent"
         />
 
-        <div className="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
           <Link
             href={isTeacher ? "/dashboard" : "/portal"}
             className="group flex items-center gap-2.5 justify-self-start"
@@ -236,7 +283,7 @@ export function Shell({
               alt="CUBE"
               width={36}
               height={36}
-              className="h-9 w-9 transition-transform duration-500 group-hover:rotate-12"
+              className="cube-logo-mark h-9 w-9 transition-transform duration-500 group-hover:rotate-12"
             />
             <span className="hidden text-lg font-black tracking-tight sm:block">
               CUBE
@@ -297,7 +344,7 @@ export function Shell({
       {/* key = route → entrance animation replays on every page change */}
       <main
         key={path}
-        className="page mx-auto max-w-6xl px-4 pb-32 pt-24 sm:px-6 sm:pb-20 sm:pt-28"
+        className="page mx-auto max-w-7xl px-4 pb-32 pt-24 sm:px-6 sm:pb-20 sm:pt-28"
       >
         {children}
       </main>
